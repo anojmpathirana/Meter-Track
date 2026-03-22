@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Meter Track - Distance Measurer</title>
+    <meta name="description" content="Accurate distance tracker that works offline.">
+    <meta name="theme-color" content="#0F172A">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Background decorative elements -->
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+
+        <header>
+            <h1>Meter <span>Track</span></h1>
+            <div id="status-indicator" class="status offline">OFFLINE</div>
+        </header>
+
+        <main class="dashboard">
+            <!-- Distance Card -->
+            <div class="card glass">
+                <p class="label">TOTAL DISTANCE</p>
+                <div class="value-container">
+                    <span id="total-distance">0.00</span>
+                    <span class="unit">KM</span>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <!-- Speed Card -->
+                <div class="card glass small">
+                    <p class="label">SPEED</p>
+                    <div class="value-container">
+                        <span id="current-speed">0.0</span>
+                        <span class="unit">KM/H</span>
+                    </div>
+                </div>
+
+                <!-- Last 100m Segment Card -->
+                <div class="card glass small">
+                    <p class="label">SEGMENT (100M)</p>
+                    <div class="value-container">
+                        <span id="segment-distance">0</span>
+                        <span class="unit">M</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Progress Bar for 100m segment -->
+            <div class="progress-outer card glass">
+                <div id="segment-progress" class="progress-inner"></div>
+            </div>
+
+            <!-- Voice Toggle -->
+            <div class="options-row">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="voice-toggle" checked>
+                    <span class="slider"></span>
+                </label>
+                <span class="option-label">Voice Alerts</span>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button id="start-btn" class="btn primary">START TRACKING</button>
+                <button id="reset-btn" class="btn secondary">RESET</button>
+            </div>
+
+            <!-- History Section -->
+            <div class="card glass history-container">
+                <div class="history-header">
+                    <p class="label">TRIP HISTORY</p>
+                    <button id="clear-history-btn" class="btn-small">CLEAR</button>
+                </div>
+                <ul id="history-list" class="history-list">
+                    <li class="empty-history">No history yet.</li>
+                </ul>
+            </div>
+
+            <p id="geo-info" class="hint">Waiting for GPS...</p>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 Meter Track • Built with ❤️</p>
+        </footer>
+    </div>
+
+    <!-- Notification Sound (Optional but useful for interval alerts) -->
+    <audio id="beep-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
+        preload="auto"></audio>
+
+    <script src="index.js"></script>
+    <script>
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('SW Registered'))
+                    .catch(err => console.log('SW Error: ', err));
+            });
+        }
+    </script>
+</body>
+
+</html>
