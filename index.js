@@ -6,6 +6,38 @@ let segmentDistance = 0; // in meters
 let totalOverallDistance = 0; // tracking how much we completed for voice updates
 let lastPosition = null;
 
+// Map Management
+let map = null;
+let pathLine = null;
+let currentMarker = null;
+
+function initMap(lat, lon) {
+    if (!map) {
+        map = L.map('map', { zoomControl: false }).setView([lat, lon], 17);
+
+        // CartoDB Dark Matter tile layer for a premium dark mode look
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OSM &copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map);
+
+        pathLine = L.polyline([], { color: '#38BDF8', weight: 5, opacity: 0.9, smoothFactor: 1 }).addTo(map);
+
+        const customIcon = L.divIcon({
+            className: 'custom-map-marker',
+            html: '<div class="marker-dot"></div>',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+
+        currentMarker = L.marker([lat, lon], { icon: customIcon }).addTo(map);
+    } else {
+        map.setView([lat, lon]);
+        currentMarker.setLatLng([lat, lon]);
+    }
+}
+
 // DOM Elements
 const startBtn = document.getElementById('start-btn');
 const resetBtn = document.getElementById('reset-btn');
@@ -132,6 +164,10 @@ function onSegmentComplete() {
 
 function handlePosition(position) {
     const { latitude, longitude, speed, accuracy } = position.coords;
+    const timestamp = position.timestamp;
+
+    // Initialize or update map
+    initMap(latitude, longitude);
 
     // Update status
     statusIndicator.className = 'status online';
@@ -139,11 +175,11 @@ function handlePosition(position) {
     geoInfo.textContent = `Accuracy: ±${Math.round(accuracy)}m`;
 
     // Speed display (convert m/s to km/h)
-    const kmh = speed ? (speed * 3.6).toFixed(1) : "0.0";
-    currentSpeedDisplay.textContent = kmh;
+    const currentSpeed = speed ? (speed * 3.6) : 0;
+    currentSpeedDisplay.textContent = currentSpeed.toFixed(1);
 
-    // Check accuracy (GPS can be noisy)
-    if (accuracy > 30) return; // Skip if accuracy is worse than 30m
+    // Skip points with extremely poor accuracy to prevent huge jumps
+    if (accuracy > 40) return;
 
     if (lastPosition) {
         const delta = calculateDistance(
@@ -151,16 +187,46 @@ function handlePosition(position) {
             latitude, longitude
         );
 
-        // Filter out GPS jump/noise (e.g. if jump > 50m in 1sec, it's likely noise)
-        // Usually walking speed is ~1.4m/s, car ~30m/s
-        if (delta > 0.5 && delta < 100) {
-            totalDistance += delta;
-            segmentDistance += delta;
-            updateDisplays();
+        // Time elapsed in seconds
+        const timeElapsed = (timestamp - lastPosition.timestamp) / 1000;
+
+        // Calculate speed in m/s based on coordinates if native speed is not available
+        const calcSpeed = timeElapsed > 0 ? (delta / timeElapsed) : 0;
+        const activeSpeedMps = speed !== null ? speed : calcSpeed;
+        const activeSpeedKmh = activeSpeedMps * 3.6;
+
+        // --- GOOGLE MAPS STYLE FILTERING ---
+        // 1. Ignore very small jumps (stationary GPS drift)
+        // 2. Allow large jumps for vehicle speeds
+
+        const minDistanceToCount = Math.max(10, accuracy * 0.5); // At least 10m movement required to register when slow
+
+        // We accept the movement if it's substantial, OR if we are clearly moving fast
+        if (delta > minDistanceToCount || activeSpeedKmh > 3.0) {
+
+            // Limit max acceptable speed to ~200 km/h (55 m/s) to filter random GPS spikes
+            if (activeSpeedKmh < 200 && delta < 2000) {
+                totalDistance += delta;
+                segmentDistance += delta;
+                updateDisplays();
+
+                // Add to path on map
+                if (pathLine && isTracking) {
+                    pathLine.addLatLng([latitude, longitude]);
+                }
+
+                // Only update lastPosition if we successfully registered the movement.
+                // This correctly accumulates small slow steps until they cross the threshold!
+                lastPosition = { latitude, longitude, timestamp };
+            }
+        }
+    } else {
+        lastPosition = { latitude, longitude, timestamp };
+        // Initial point on map
+        if (pathLine && isTracking) {
+            pathLine.addLatLng([latitude, longitude]);
         }
     }
-
-    lastPosition = { latitude, longitude };
 }
 
 function handleError(error) {
@@ -181,6 +247,7 @@ function toggleTracking() {
         // Stop
         navigator.geolocation.clearWatch(watchId);
         isTracking = false;
+        lastPosition = null; // Prevent jumping distance when paused
         startBtn.textContent = 'START TRACKING';
         startBtn.classList.remove('stop');
         statusIndicator.className = 'status offline';
@@ -215,6 +282,12 @@ function resetAll() {
         lastPosition = null;
         updateDisplays();
         currentSpeedDisplay.textContent = "0.0";
+        if (pathLine) {
+            pathLine.setLatLngs([]);
+            if (currentMarker) {
+                pathLine.addLatLng(currentMarker.getLatLng());
+            }
+        }
         saveHistory('Counter reset');
     }
 }
@@ -238,3 +311,18 @@ window.addEventListener('offline', () => {
     statusIndicator.className = 'status offline';
     statusIndicator.textContent = 'OFFLINE MODE';
 });
+
+// Get initial location just to display the map
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            initMap(position.coords.latitude, position.coords.longitude);
+            geoInfo.textContent = "GPS Ready";
+        },
+        (error) => {
+            console.log("Initial GPS Error", error);
+            geoInfo.textContent = "Click Start to enable GPS";
+        },
+        { enableHighAccuracy: true }
+    );
+}

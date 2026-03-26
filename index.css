@@ -32,26 +32,65 @@ body {
     align-items: center;
 }
 
-/* Background Decoration */
-.blob {
+#map {
     position: absolute;
-    width: 300px;
-    height: 300px;
-    background: linear-gradient(135deg, var(--primary), var(--accent));
-    filter: blur(80px);
-    z-index: -1;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.custom-map-marker {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.marker-dot {
+    width: 16px;
+    height: 16px;
+    background-color: var(--primary);
+    border: 3px solid white;
     border-radius: 50%;
-    opacity: 0.15;
+    box-shadow: 0 0 10px var(--primary);
+    position: relative;
 }
 
-.blob-1 {
-    top: -10%;
-    left: -10%;
+.marker-dot::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background-color: var(--primary);
+    border-radius: 50%;
+    opacity: 0.4;
+    animation: markerPulse 2s infinite ease-in-out;
 }
 
-.blob-2 {
-    bottom: -10%;
-    right: -10%;
+@keyframes markerPulse {
+    0% {
+        transform: scale(0.5);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+.leaflet-control-attribution {
+    background: rgba(15, 23, 42, 0.7) !important;
+    color: var(--text-dim) !important;
+    font-size: 0.65rem !important;
+    border-radius: 4px 0 0 0;
+}
+
+.leaflet-control-attribution a {
+    color: var(--primary) !important;
 }
 
 .app-container {
@@ -61,6 +100,16 @@ body {
     padding: 2rem 1.5rem;
     display: flex;
     flex-direction: column;
+    position: relative;
+    z-index: 1;
+    pointer-events: none;
+}
+
+header,
+.card,
+.controls,
+.options-row {
+    pointer-events: auto;
 }
 
 header {
