@@ -450,3 +450,44 @@ input:checked+.slider:before {
     text-align: center;
     margin-top: 1rem;
 }
+
+/* Tracking Mode (Compact Bottom UI) */
+body.tracking-mode .hide-on-track {
+    display: none !important;
+}
+
+body.tracking-mode header {
+    margin-bottom: auto;
+    /* Push the rest to the bottom */
+}
+
+body.tracking-mode .dashboard {
+    margin-top: auto;
+    gap: 0.75rem;
+}
+
+body.tracking-mode .card {
+    padding: 1rem 1.25rem;
+}
+
+body.tracking-mode .card.small {
+    padding: 0.75rem 1rem;
+}
+
+body.tracking-mode #total-distance {
+    font-size: 2.75rem;
+}
+
+body.tracking-mode #current-speed,
+body.tracking-mode #segment-distance {
+    font-size: 1.5rem;
+}
+
+body.tracking-mode .controls {
+    gap: 0.75rem;
+}
+
+body.tracking-mode .controls .btn {
+    padding: 1rem;
+    font-size: 0.9rem;
+}

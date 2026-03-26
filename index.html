@@ -27,7 +27,7 @@
     <div class="app-container">
 
         <header>
-            <h1>Meter <span>Track</span></h1>
+            <h1 class="hide-on-track">Meter <span>Track</span></h1>
             <div id="status-indicator" class="status offline">OFFLINE</div>
         </header>
 
@@ -67,7 +67,7 @@
             </div>
 
             <!-- Voice Toggle -->
-            <div class="options-row">
+            <div class="options-row hide-on-track">
                 <label class="toggle-switch">
                     <input type="checkbox" id="voice-toggle" checked>
                     <span class="slider"></span>
@@ -82,7 +82,7 @@
             </div>
 
             <!-- History Section -->
-            <div class="card glass history-container">
+            <div class="card glass history-container hide-on-track">
                 <div class="history-header">
                     <p class="label">TRIP HISTORY</p>
                     <button id="clear-history-btn" class="btn-small">CLEAR</button>
@@ -92,7 +92,7 @@
                 </ul>
             </div>
 
-            <p id="geo-info" class="hint">Waiting for GPS...</p>
+            <p id="geo-info" class="hint hide-on-track">Waiting for GPS...</p>
         </main>
 
         <footer>

@@ -252,6 +252,7 @@ function toggleTracking() {
         startBtn.classList.remove('stop');
         statusIndicator.className = 'status offline';
         statusIndicator.textContent = 'PAUSED';
+        document.body.classList.remove('tracking-mode');
     } else {
         // Start
         if (!navigator.geolocation) {
@@ -265,6 +266,7 @@ function toggleTracking() {
         isTracking = true;
         startBtn.textContent = 'STOP TRACKING';
         startBtn.classList.add('stop');
+        document.body.classList.add('tracking-mode');
 
         watchId = navigator.geolocation.watchPosition(handlePosition, handleError, {
             enableHighAccuracy: true,
